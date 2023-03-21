@@ -1,5 +1,7 @@
 package com.my.citybike.model;
 
+import java.sql.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,10 +18,10 @@ public class Journey {
 	private Long id;
 	
 	@Column
-	private String departureTime;
+	private Date departureTime;
 	
 	@Column
-	private String returnTime;
+	private Date returnTime;
 	
 	@Column
 	private int distance;
@@ -32,12 +34,12 @@ public class Journey {
 	private Station returnStation;
 	
 	@ManyToOne
-	@JoinColumn(name = "departur_station_id", referencedColumnName = "id")
+	@JoinColumn(name = "departure_station_id", referencedColumnName = "id")
 	private Station departureStation;
 	
 	public Journey() {}
 
-	public Journey(String departureTime, String returnTime, int distance, int duration, Station returnStation,
+	public Journey(Date departureTime, Date returnTime, int distance, int duration, Station returnStation,
 			Station departureStation) {
 		super();
 		this.departureTime = departureTime;
@@ -56,19 +58,19 @@ public class Journey {
 		this.id = id;
 	}
 
-	public String getDepartureTime() {
+	public Date getDepartureTime() {
 		return departureTime;
 	}
 
-	public void setDepartureTime(String departureTime) {
+	public void setDepartureTime(Date departureTime) {
 		this.departureTime = departureTime;
 	}
 
-	public String getReturnTime() {
+	public Date getReturnTime() {
 		return returnTime;
 	}
 
-	public void setReturnTime(String returnTime) {
+	public void setReturnTime(Date returnTime) {
 		this.returnTime = returnTime;
 	}
 

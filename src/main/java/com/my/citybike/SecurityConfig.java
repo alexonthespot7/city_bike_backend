@@ -40,7 +40,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.sessionManagement()
 		.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 		.authorizeRequests()
-		.antMatchers(HttpMethod.GET, "/quizzes", "/stations", "/journeys").permitAll()
+		.antMatchers(HttpMethod.GET, "/stations", "/journeys", "/stations/*", "/journey", "/stations/*/stats").permitAll()
 		.antMatchers(HttpMethod.POST, "/login", "/sendstations", "/sendjourneys").permitAll()
 		.anyRequest().hasAuthority("ADMIN").and()
 		.exceptionHandling()
