@@ -9,15 +9,19 @@ public class StationStatsForm {
 	private Long avgDistEndingAt;
 	private List<Station> topPopReturnStations;
 	private List<Station> topPopDepStations;
+	private Integer journeysFrom;
+	private Integer journeysTo;
 	
 	public StationStatsForm() {}
 	
 	public StationStatsForm(Long avgDistStartingFrom, Long avgDistEndingAt, List<Station> topPopReturnStations,
-			List<Station> topPopDepStations) {
+			List<Station> topPopDepStations, Integer journeysFrom, Integer journeysTo) {
 		this.avgDistStartingFrom = avgDistStartingFrom;
 		this.avgDistEndingAt = avgDistEndingAt;
 		this.topPopReturnStations = topPopReturnStations;
 		this.topPopDepStations = topPopDepStations;
+		this.journeysFrom = journeysFrom;
+		this.journeysTo = journeysTo;
 	}
 
 	public Long getAvgDistStartingFrom() {
@@ -50,5 +54,21 @@ public class StationStatsForm {
 
 	public void setTopPopDepStations(List<Station> topPopDepStations) {
 		this.topPopDepStations = topPopDepStations;
+	}
+
+	public Integer getJourneysFrom() {
+		return journeysFrom;
+	}
+
+	public void setJourneysFrom(Integer journeysFrom) {
+		this.journeysFrom = journeysFrom;
+	}
+
+	public Integer getJourneysTo() {
+		return journeysTo;
+	}
+
+	public void setJourneysTo(Integer journeysTo) {
+		this.journeysTo = journeysTo;
 	}
 }
