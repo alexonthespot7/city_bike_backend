@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -344,5 +345,33 @@ public class MainController {
 		}
 
 		return flag;
+	}
+	
+	@PreAuthorize("hasAuthority('ADMIN')")
+	@RequestMapping(value = "/addstation", method = RequestMethod.POST)
+	public ResponseEntity<?> addStation(@RequestBody Station station) {
+		Optional<Station> optStation = srepository.findById(station.getId());
+		
+		if (optStation.isPresent()) {
+			return new ResponseEntity<>("The id you are trying to pass is already in use", HttpStatus.BAD_REQUEST);
+		} else {
+			srepository.save(station);
+			return new ResponseEntity<>("The station was added successfully", HttpStatus.OK);
+		}
+	}
+	
+	@RequestMapping(value = "/addjourney", method = RequestMethod.POST)
+	public ResponseEntity<?> addStation(@RequestBody JourneyForm journeyForm) {
+		Optional<Station> returnStation = srepository.findById(journeyForm.getReturnStationId());
+		Optional<Station> departureStation = srepository.findById(journeyForm.getDepartureStationId());
+		
+		if (returnStation.isPresent() && departureStation.isPresent()) {
+			Journey journey = new Journey(Date.valueOf(journeyForm.getDepartureTime()), Date.valueOf(journeyForm.getReturnTime()), journeyForm.getDistance(), journeyForm.getDuration(), returnStation.get(), departureStation.get());
+			jrepository.save(journey);
+			return new ResponseEntity<>("The station was added successfully", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("The stations you are trying to claim as return and departure for your journey are not in database", HttpStatus.BAD_REQUEST); //400
+		}
+		
 	}
 }
