@@ -66,6 +66,4 @@ public interface JourneyRepository extends PagingAndSortingRepository<Journey, L
 	@Query(value = "SELECT * FROM journey WHERE return_station_id = ?1 AND return_time > ?2 AND return_time < ?3", nativeQuery = true)
 	List<Journey> findJourneysToByReturnStationIdAndMonth(Long returnStationId, Date firstDay, Date secondDay);
 	
-	//@Query(value="SELECT * FROM journey", nativeQuery = true)
-	//Page<Journey> findAll(Pageable pageable);
 }

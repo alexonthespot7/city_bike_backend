@@ -1,3 +1,7 @@
+/*
+ * This class represents a specification for querying Journey entities in the database using criteria-based queries.
+ * It implements the Specification interface provided by Spring Data JPA.
+ */
 package com.my.citybike.model;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -13,51 +17,50 @@ public class JourneySpecification implements Specification<Journey> {
 	private SearchCriteria criteria;
 
 	public JourneySpecification(SearchCriteria criteria) {
-        this.criteria = criteria;
-    }
-	
-    @Override
-    public Predicate toPredicate
-      (Root<Journey> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
- 
-    	if (criteria.getOperation().equalsIgnoreCase("equals")) {
-            String[] propertyPath = criteria.getKey().split("\\.");
+		this.criteria = criteria;
+	}
 
-            if (propertyPath.length == 2 && propertyPath[0].equals("returnStation")) {
-                Join<Journey, Station> returnStationJoin = root.join("returnStation");
-                return builder.equal(returnStationJoin.get(propertyPath[1]), criteria.getValue());
-            } else if (propertyPath.length == 2 && propertyPath[0].equals("departureStation")) {
-                Join<Journey, Station> departureStationJoin = root.join("departureStation");
-                return builder.equal(departureStationJoin.get(propertyPath[1]), criteria.getValue());
-            } else {
-                return builder.equal(root.get(criteria.getKey()), criteria.getValue());
-            }
-        } else if (criteria.getOperation().equalsIgnoreCase("lessThan")) {
-            return builder.lessThan(
-              root.<Integer> get(criteria.getKey()), (int) criteria.getValue());
-        } else if (criteria.getOperation().equalsIgnoreCase("greaterThan")) {
-        	return builder.greaterThan(
-        			root.<Integer> get(criteria.getKey()), (int) criteria.getValue());
-        } else if (criteria.getOperation().equalsIgnoreCase("equals")) {
-            if (root.get(criteria.getKey()).getJavaType() == String.class) {
-                return builder.equal(
-                  root.<String>get(criteria.getKey()), criteria.getValue());
-            } else {
-                return builder.equal(root.<Integer> get(criteria.getKey()), (int) criteria.getValue());
-            }
-        } else if (criteria.getOperation().equalsIgnoreCase("contains")) {
-            String[] propertyPath = criteria.getKey().split("\\.");
+	/*
+	 * Constructs the predicate based on the provided search criteria.
+	 */
+	@Override
+	public Predicate toPredicate(Root<Journey> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-            if (propertyPath.length == 2 && propertyPath[0].equals("returnStation")) {
-                Join<Journey, Station> returnStationJoin = root.join("returnStation");
-                return builder.like(returnStationJoin.get(propertyPath[1]), "%" + criteria.getValue() + "%");
-            } else if (propertyPath.length == 2 && propertyPath[0].equals("departureStation")) {
-                Join<Journey, Station> departureStationJoin = root.join("departureStation");
-                return builder.like(departureStationJoin.get(propertyPath[1]), "%" + criteria.getValue() + "%");
-            } else {
-                return builder.like(root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
-            }
-        }
-        return null;
-    }
+		if (criteria.getOperation().equalsIgnoreCase("equals")) {
+			String[] propertyPath = criteria.getKey().split("\\.");
+
+			if (propertyPath.length == 2 && propertyPath[0].equals("returnStation")) {
+				Join<Journey, Station> returnStationJoin = root.join("returnStation");
+				return builder.equal(returnStationJoin.get(propertyPath[1]), criteria.getValue());
+			} else if (propertyPath.length == 2 && propertyPath[0].equals("departureStation")) {
+				Join<Journey, Station> departureStationJoin = root.join("departureStation");
+				return builder.equal(departureStationJoin.get(propertyPath[1]), criteria.getValue());
+			} else {
+				return builder.equal(root.get(criteria.getKey()), criteria.getValue());
+			}
+		} else if (criteria.getOperation().equalsIgnoreCase("lessThan")) {
+			return builder.lessThan(root.<Integer>get(criteria.getKey()), (int) criteria.getValue());
+		} else if (criteria.getOperation().equalsIgnoreCase("greaterThan")) {
+			return builder.greaterThan(root.<Integer>get(criteria.getKey()), (int) criteria.getValue());
+		} else if (criteria.getOperation().equalsIgnoreCase("equals")) {
+			if (root.get(criteria.getKey()).getJavaType() == String.class) {
+				return builder.equal(root.<String>get(criteria.getKey()), criteria.getValue());
+			} else {
+				return builder.equal(root.<Integer>get(criteria.getKey()), (int) criteria.getValue());
+			}
+		} else if (criteria.getOperation().equalsIgnoreCase("contains")) {
+			String[] propertyPath = criteria.getKey().split("\\.");
+
+			if (propertyPath.length == 2 && propertyPath[0].equals("returnStation")) {
+				Join<Journey, Station> returnStationJoin = root.join("returnStation");
+				return builder.like(returnStationJoin.get(propertyPath[1]), "%" + criteria.getValue() + "%");
+			} else if (propertyPath.length == 2 && propertyPath[0].equals("departureStation")) {
+				Join<Journey, Station> departureStationJoin = root.join("departureStation");
+				return builder.like(departureStationJoin.get(propertyPath[1]), "%" + criteria.getValue() + "%");
+			} else {
+				return builder.like(root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
+			}
+		}
+		return null;
+	}
 }

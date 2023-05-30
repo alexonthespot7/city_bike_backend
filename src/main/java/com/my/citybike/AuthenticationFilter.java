@@ -1,5 +1,10 @@
 package com.my.citybike;
 
+/*
+ * This class represents a filter used for authentication in the CityBike application.
+ * It extends the OncePerRequestFilter class provided by Spring.
+ */
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
@@ -26,34 +31,53 @@ import com.my.citybike.service.AuthenticationService;
 public class AuthenticationFilter extends OncePerRequestFilter {
 	@Autowired
 	private AuthenticationService jwtService;
-	
+
 	@Autowired
 	private UserRepository urepository;
-	
+
+	/*
+	 * This method is invoked for each incoming request to perform authentication.
+	 * It extracts the JWT token from the request header, retrieves the user details
+	 * from the UserRepository, and creates an Authentication object based on the
+	 * retrieved user. The Authentication object is then set in the
+	 * SecurityContextHolder to establish the user's authentication status.
+	 */
+
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-		
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws IOException, ServletException {
+
+		// Retrieve the JWT token from the request header
 		String jws = request.getHeader(HttpHeaders.AUTHORIZATION);
-		
+
 		if (jws != null) {
+			// Extract the username from the JWT token
 			String username = jwtService.getAuthUser(request);
-			
+
+			// Retrieve the user details from the UserRepository
 			Optional<User> optUser = urepository.findByUsername(username);
-			
+
 			Authentication authentication;
-			
+
 			if (optUser.isPresent()) {
 				User user = optUser.get();
 				boolean enabled = user.isAccountVerified();
-				MyUser myUser = new MyUser(user.getId(), username, user.getPassword(),
-						enabled, true, true, true, AuthorityUtils.createAuthorityList(user.getRole()));
-				authentication = new UsernamePasswordAuthenticationToken(myUser, null, AuthorityUtils.createAuthorityList(user.getRole()));
+				// Create a custom user object for authentication
+				MyUser myUser = new MyUser(user.getId(), username, user.getPassword(), enabled, true, true, true,
+						AuthorityUtils.createAuthorityList(user.getRole()));
+				// Create the authentication token
+				authentication = new UsernamePasswordAuthenticationToken(myUser, null,
+						AuthorityUtils.createAuthorityList(user.getRole()));
 			} else {
+				// If the user does not exist, create an empty authentication token
 				authentication = new UsernamePasswordAuthenticationToken(null, null, Collections.emptyList());
 			}
-			
+
+			// Set the authentication object in the SecurityContextHolder
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		}
+
+		// Continue the filter chain
 		filterChain.doFilter(request, response);
 	}
 }

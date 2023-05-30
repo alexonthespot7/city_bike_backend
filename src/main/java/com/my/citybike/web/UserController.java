@@ -26,10 +26,18 @@ public class UserController {
 
 	@Autowired
 	private AuthenticationService jwtService;
-	
+
 	@Autowired
 	AuthenticationManager authenticationManager;
-	
+
+	/**
+	 * Endpoint for user login and token retrieval.
+	 * 
+	 * @param credentials The user account credentials.
+	 * @return ResponseEntity containing the authentication token in the response
+	 *         header if successful, or an error message with the corresponding HTTP
+	 *         status code.
+	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public ResponseEntity<?> getToken(@RequestBody AccountCredentials credentials) {
 		Optional<User> userByMail = urepository.findByEmail(credentials.getUsername());
@@ -41,6 +49,7 @@ public class UserController {
 				creds = new UsernamePasswordAuthenticationToken(userByMail.get().getUsername(),
 						credentials.getPassword());
 			} else {
+				// Return error response if email is not verified
 				return new ResponseEntity<>("Email is not verified", HttpStatus.CONFLICT);
 			}
 		} else {
@@ -49,9 +58,11 @@ public class UserController {
 					creds = new UsernamePasswordAuthenticationToken(credentials.getUsername(),
 							credentials.getPassword());
 				} else {
+					// Return error response if email is not verified
 					return new ResponseEntity<>("Email is not verified", HttpStatus.CONFLICT);
 				}
 			} else {
+				// Return error response for bad credentials
 				return new ResponseEntity<>("Bad credentials", HttpStatus.UNAUTHORIZED);
 			}
 		}
@@ -62,11 +73,13 @@ public class UserController {
 
 		Optional<User> currentUser = urepository.findByUsername(auth.getName());
 		if (currentUser.isPresent()) {
+			// Return successful response with token and user information in the headers
 			return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwts)
 					.header(HttpHeaders.ALLOW, currentUser.get().getRole())
 					.header(HttpHeaders.HOST, currentUser.get().getId().toString())
 					.header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Authorization, Allow", "Host").build();
 		} else {
+			// Return error response for bad credentials
 			return new ResponseEntity<>("Bad credentials", HttpStatus.UNAUTHORIZED);
 		}
 

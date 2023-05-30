@@ -1,3 +1,7 @@
+/*
+ * This class represents the configuration for Spring Security.
+ * It extends the WebSecurityConfigurerAdapter and provides customization for security settings.
+ */
 package com.my.citybike;
 
 import java.util.Arrays;
@@ -34,6 +38,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private AuthEntryPoint exceptionHandler;
 	
+	/*
+	 * Configures the security settings for HTTP requests.
+	 */
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable().cors().and()
@@ -48,6 +55,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
+	/*
+	 * Creates a bean for configuring the CORS (Cross-Origin Resource Sharing) policy.
+	 */
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -65,18 +75,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return source;
 	}
 	
+	/*
+	 * Configures the global authentication manager with the user details service and password encoder.
+	 */
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(userDetailsService)
 			.passwordEncoder(new BCryptPasswordEncoder());
 	}
 	
+	/*
+	 * Creates a bean for obtaining the AuthenticationManager.
+	 */
 	@Bean
 	public AuthenticationManager getAuthenticationManager() 
 			throws Exception {
 		return authenticationManager();
 	}
-	
-		
-	
 }
