@@ -18,12 +18,12 @@ public class CityBikeApplication {
 		SpringApplication.run(CityBikeApplication.class, args);
 	}
 	
-	@Bean
+	/**@Bean
 	public CommandLineRunner runner() {
 		return (args) -> {
-			uRepository.save(new User("admin", "$2a$12$TmL951wLuoDyNzVIUz8CDeUFQMrLrbO49Rxv.RvoO1UFxlkS0w63S", "ADMIN",
-					"mymail2@gmail.com", true));
+			uRepository.save(new User("admin", "$2a$12$jBJVWZnVf6cyPcUW1UJTye1ke2RHlileJFrtp59ADQbZsSYqErrOy", "ADMIN",
+					"mrbudach@mail.ru", true));
 		};
-	}
+	}*/
 
 }

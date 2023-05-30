@@ -5,17 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +26,8 @@ import com.my.citybike.forms.JourneyForm;
 import com.my.citybike.forms.StationStatsForm;
 import com.my.citybike.model.Journey;
 import com.my.citybike.model.JourneyRepository;
+import com.my.citybike.model.JourneySpecification;
+import com.my.citybike.model.SearchCriteria;
 import com.my.citybike.model.Station;
 import com.my.citybike.model.StationRepository;
 import com.my.citybike.model.User;
@@ -31,8 +35,6 @@ import com.my.citybike.model.UserRepository;
 
 @RestController
 public class MainController {
-	private static final Logger log = LoggerFactory.getLogger(MainController.class);
-
 	@Autowired
 	UserRepository urepository;
 
@@ -41,6 +43,12 @@ public class MainController {
 
 	@Autowired
 	JourneyRepository jrepository;
+	
+	@RequestMapping("/removeDuplicates")
+    public ResponseEntity<String> removeDuplicates() {
+		jrepository.deleteDuplicates();
+        return ResponseEntity.ok("Duplicate records have been removed.");
+    }
 
 	@RequestMapping("/stations/{stationid}/stats")
 	public @ResponseBody StationStatsForm stationStatsRest(@PathVariable("stationid") Long stationId) {
@@ -86,7 +94,6 @@ public class MainController {
 			@RequestBody String dateString) {
 		Optional<Station> optStation = srepository.findById(stationId);
 		if (optStation.isPresent() && dateString.contains("T")) {
-			log.info(dateString);
 			dateString = dateString.split("T")[0];
 			Date firstDay = Date.valueOf(dateString);
 			Date secondDay = Date.valueOf(dateString.split("-")[0] + "-"
@@ -137,8 +144,66 @@ public class MainController {
 	}
 
 	@RequestMapping("/journeys")
-	public @ResponseBody List<Journey> journeyssListRest() {
-		return (List<Journey>) jrepository.findAll();
+	public @ResponseBody Page<Journey> journeyssListRest(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "") String sort, @RequestParam(defaultValue = "") String order,
+			@RequestParam(defaultValue = "") String depValue, @RequestParam(defaultValue = "") String depOperation,
+			@RequestParam(defaultValue = "") String retValue, @RequestParam(defaultValue = "") String retOperation,
+			@RequestParam(defaultValue = "0") int distValue, @RequestParam(defaultValue = "") String distOperation,
+			@RequestParam(defaultValue = "0") int durValue, @RequestParam(defaultValue = "") String durOperation) {
+		Pageable pageable;
+
+		if (!sort.equals("")) {
+			Sort sortParams = Sort.by(sort);
+			if (!order.equals("asc")) {
+				sortParams = sortParams.descending();
+			}
+
+			pageable = PageRequest.of(page, 100, sortParams);
+		} else {
+			pageable = PageRequest.of(page, 100);
+		}
+
+		boolean flag = true;
+		JourneySpecification spec = null;
+
+		if (!depValue.equals("")) {
+			spec = new JourneySpecification(new SearchCriteria("departureStation.name", depOperation, depValue));
+			flag = false;
+		}
+
+		if (!retValue.equals("")) {
+			if (flag) {
+				spec = new JourneySpecification(new SearchCriteria("returnStation.name", retOperation, retValue));
+				flag = false;
+			} else {
+				spec.and(new JourneySpecification(new SearchCriteria("returnStation.name", retOperation, retValue)));
+			}
+		}
+
+		if (!distOperation.equals("")) {
+			if (flag) {
+				spec = new JourneySpecification(new SearchCriteria("distance", distOperation, distValue));
+				flag = false;
+			} else {
+				spec.and(new JourneySpecification(new SearchCriteria("distance", distOperation, distValue)));
+			}
+		}
+
+		if (!durOperation.equals("")) {
+			if (flag) {
+				spec = new JourneySpecification(new SearchCriteria("duration", durOperation, durValue));
+				flag = false;
+			} else {
+				spec.and(new JourneySpecification(new SearchCriteria("duration", durOperation, durValue)));
+			}
+		}
+
+		if (flag) {
+			return jrepository.findAll(pageable);
+		} else {
+			return jrepository.findAll(spec, pageable);
+		}
+
 	}
 
 	@RequestMapping("/stations/{stationid}")
@@ -263,10 +328,12 @@ public class MainController {
 				} else {
 					dateRet = journeys.get(i).getReturnTime().split("T")[0];
 				}
-				Optional<Journey> optJourney = jrepository.findByFields(Date.valueOf(dateDep), Date.valueOf(dateRet),
+
+				List<Journey> optJourneys = jrepository.findByFields(Date.valueOf(dateDep), Date.valueOf(dateRet),
 						journeys.get(i).getDistance(), journeys.get(i).getDuration(), optStationReturn.get().getId(),
 						optStationDep.get().getId());
-				if (!optJourney.isPresent()) {
+				if (optJourneys.size() == 0) {
+
 					journey = new Journey(Date.valueOf(dateDep), Date.valueOf(dateRet), journeys.get(i).getDistance(),
 							journeys.get(i).getDuration(), optStationReturn.get(), optStationDep.get());
 					jrepository.save(journey);
